@@ -1,91 +1,51 @@
-# Install and load necessary R packages
+# 设置CRAN镜像
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# 安装和加载必要的R包
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install("DESeq2")
-BiocManager::install("EnhancedVolcano")
-BiocManager::install("pheatmap", force = TRUE)
-# set CRAN mirror
-options(repos = c(CRAN = "https://cran.rstudio.com"))
-if (!requireNamespace("ggplot2", quietly = TRUE))
-    install.packages("ggplot2")
 
-library(DESeq2)
-library(EnhancedVolcano)
-library(pheatmap)
-library(ggplot2)
+if (!requireNamespace("limma", quietly = TRUE))
+    BiocManager::install("limma")
 
-# Input of raw data
-counts <- read.table("result/expression/raw_counts.txt", header = TRUE, row.names = 1)
-colnames(counts) <- c("untreated_1", "untreated_2", "untreated_3", "gentamicin_1", "gentamicin_2", "gentamicin_3")
+library("limma")
+library("edgeR")
 
-# Set up data frame for sample information
-sample_info <- data.frame(
-    row.names = colnames(counts),
-    condition = c("untreated", "untreated", "untreated", "gentamicin", "gentamicin", "gentamicin")
-)
+# 读取计数数据
+countData <- read.table("result/expression/counts.txt", header = TRUE, sep = "\t", comment.char = "#", row.names = 1)
 
-# Set up DESeqDataSet object
-dds <- DESeqDataSetFromMatrix(countData = counts, colData = sample_info, design = ~ condition)
+# 查看数据框的列名称
+print(colnames(countData))
 
-# Data preprocessing (low quality data trimming & normalization)
-dds <- dds[rowSums(counts(dds)) > 1, ]
-dds <- DESeq(dds)
+# 选择计数数据列
+countData <- countData[, c("..bam.SRR15174659_sorted.bam", "..bam.SRR15174664_sorted.bam")]
 
-# Extract the results and arrange the results in order
-res <- results(dds)
-resOrdered <- res[order(res$padj), ]
+# 创建样本信息数据框
+group <- factor(c("untreated", "meropenem"))
 
-# Set up p value and log2 fold change value
-pCutoff <- 10e-6
-log2FCCutoff <- 2.0
+# 创建DGEList对象
+y <- DGEList(counts = countData, group = group)
 
-########## Volcano Map ##########
-EnhancedVolcano(res,
-                lab = rownames(res),
-                x = 'log2FoldChange',
-                y = 'padj',
-                xlab = bquote(~Log[2]~ 'Fold Change'),
-                ylab = bquote(~-Log[10]~ 'P-value'),
-                pCutoff = pCutoff,
-                FCcutoff = log2FCCutoff,
-                pointSize = 3.0,
-                labSize = 3.0,
-                col = c('grey30', 'forestgreen', 'royalblue', 'red2'),
-                colAlpha = 0.5,  # 增加透明度以减少重叠点
-                legendLabels = c('NS', 'Log2 FC', 'Adjusted p-value', 'Adjusted p-value & Log2 FC'),
-                legendPosition = 'bottom',
-                legendLabSize = 10,
-                legendIconSize = 3.0)
+# 计算规范化因子
+y <- calcNormFactors(y)
 
-# Screen out the genes with significant expression difference for heat map
-sigGenes <- resOrdered[which(resOrdered$padj < pCutoff & abs(resOrdered$log2FoldChange) > log2FCCutoff), ]
-sigGeneNames <- rownames(sigGenes)
-sigCounts <- counts[sigGeneNames, ]
-vsd <- varianceStabilizingTransformation(dds, blind=FALSE)
-normalized_counts <- assay(vsd)
-sigNormalizedCounts <- normalized_counts[sigGeneNames, ]
+# 创建设计矩阵
+design <- model.matrix(~ group)
 
-# set proper width and height
-num_genes <- nrow(sigNormalizedCounts)
-num_samples <- ncol(sigNormalizedCounts)
-max_genes_per_page <- 50
-max_samples_per_page <- 10
-cellwidth <- 35
-cellheight <- 300 / min(max_genes_per_page, num_genes) / 10
+# 使用voom转换数据
+v <- voom(y, design, plot = TRUE)
 
-########## Heat Map ##########
-pheatmap(sigNormalizedCounts, 
-         cluster_rows = TRUE, 
-         cluster_cols = TRUE, 
-         show_rownames = num_genes <= max_genes_per_page, 
-         show_colnames = num_samples <= max_samples_per_page, 
-         annotation_col = sample_info,
-         cellwidth = cellwidth,  # 动态调整每列的宽度
-         cellheight = cellheight)  # 动态调整每行的高度，使基因分布更均匀
+# 线性模型拟合
+fit <- lmFit(v, design)
 
-########## MA Plot ##########
-plotMA(res, ylim = c(-5, 5), main = "MA Plot", colSig = "darkorange", colNonSig = "dodgerblue", 
-       xlab = "Mean of Normalized Counts", ylab = "Fold Change")
+# 计算差异表达
+fit <- eBayes(fit)
 
-# Output
-legend("topright", legend = c("Significant", "Non-Significant"), col = c("darkorange", "dodgerblue"), pch = 16)
+# 提取结果
+res <- topTable(fit, coef = 2, number = nrow(countData))
+
+# 查看结果
+head(res)
+
+# 保存结果
+write.csv(res, file = "differential_expression_results_limma_voom.csv")
