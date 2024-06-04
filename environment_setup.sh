@@ -47,7 +47,7 @@ conda activate rna_seq
 
 # Install necessary packages via conda
 log "Installing necessary packages for rna_seq..."
-conda install -c bioconda sra-tools fastqc trim-galore bwa samtools subread -y
+conda install -c bioconda sra-tools=2.10.9 fastqc=0.11.9 trim-galore=0.6.6 bwa=0.7.17 samtools=1.11 subread=2.0.1 -y
 
 #################### Set up the r_env environment ####################
 if conda env list | grep -q "r_env"; then
