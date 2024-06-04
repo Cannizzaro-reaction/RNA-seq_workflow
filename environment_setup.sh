@@ -1,59 +1,70 @@
 #!/bin/bash
 
-# create working directory
+set -e 
+LOGFILE="setup_log.txt"
+
+# Function to log messages
+log() {
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - $1" | tee -a $LOGFILE
+}
+
+log "Starting environment setup..."
+
+# Check if conda is installed
+if ! command -v conda &> /dev/null
+then
+    log "Conda could not be found. Please install Conda and rerun this script."
+    exit 1
+fi
+
+# Create working directory
 working_dir=$(pwd)
+log "Setting up working directory at $working_dir/RNA-seq_analysis"
 mkdir -p "$working_dir/RNA-seq_analysis/database"
 cd RNA-seq_analysis
 
 #################### Set up the rna_seq environment ####################
 # Add conda mirror channels
+log "Adding conda mirror channels..."
 conda config --add channels https://mirror.sjtu.edu.cn/anaconda/pkgs/main/
 conda config --add channels https://mirror.sjtu.edu.cn/anaconda/pkgs/free/
 conda config --add channels https://mirror.sjtu.edu.cn/anaconda/cloud/conda-forge/
 conda config --add channels https://mirror.sjtu.edu.cn/anaconda/cloud/bioconda/
 conda config --set show_channel_urls yes
 
+# Load Conda environment
+log "Loading Conda environment..."
+source $(conda info --base)/etc/profile.d/conda.sh
+
 # Create and activate conda environment
-conda create --name rna_seq -y
-source activate rna_seq
+if conda env list | grep -q "rna_seq"; then
+    log "Environment 'rna_seq' already exists. Activating..."
+else
+    log "Creating and activating 'rna_seq' environment..."
+    conda create --name rna_seq -y
+fi
+conda activate rna_seq
 
-# Install necessary packages
-sudo apt-get update
-sudo apt-get install -y unzip wget fastqc bwa samtools
-
-# Download and install SRA tools (used in prefetch)
-SRA_VERSION="3.0.0"
-INSTALL_DIR="$HOME/sratoolkit.$SRA_VERSION-ubuntu64"
-wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/$SRA_VERSION/sratoolkit.$SRA_VERSION-ubuntu64.tar.gz -O sratoolkit.tar.gz
-tar -xvzf sratoolkit.tar.gz -C $HOME
-rm sratoolkit.tar.gz
-export PATH=$PATH:$INSTALL_DIR/bin
-
-# Download and install trim_galore
-mkdir software
-cd software
-wget https://github.com/FelixKrueger/TrimGalore/archive/refs/tags/0.6.7.tar.gz
-tar -xzvf 0.6.7.tar.gz
-cd TrimGalore-0.6.7
-chmod +x trim_galore
-sudo cp trim_galore /usr/local/bin
-cd ..
-rm 0.6.7.tar.gz
-cd ..
-
-# Install subread for expression quantification analysis
-conda install -c bioconda subread -y
+# Install necessary packages via conda
+log "Installing necessary packages for rna_seq..."
+conda install -c bioconda sra-tools fastqc trim-galore bwa samtools subread -y
 
 #################### Set up the r_env environment ####################
-conda create --name r_env -y
-source activate r_env
+if conda env list | grep -q "r_env"; then
+    log "Environment 'r_env' already exists. Activating..."
+else
+    log "Creating and activating 'r_env' environment..."
+    conda create --name r_env -y
+fi
+conda activate r_env
 conda install -c r r-base -y
 
 # Install R packages for differential expression analysis
-Rscript -e "if (!requireNamespace('BiocManager', quietly = TRUE)) install.packages('BiocManager')"
-Rscript -e "BiocManager::install('DESeq2')"
-Rscript -e "BiocManager::install('EnhancedVolcano')"
-Rscript -e "BiocManager::install('pheatmap', force = TRUE)"
-Rscript -e "if (!requireNamespace('ggplot2', quietly = TRUE)) install.packages('ggplot2')"
+log "Installing R packages..."
+Rscript -e "if (!requireNamespace('BiocManager', quietly = TRUE)) install.packages('BiocManager')" >> $LOGFILE 2>&1
+Rscript -e "BiocManager::install('DESeq2')" >> $LOGFILE 2>&1
+Rscript -e "BiocManager::install('EnhancedVolcano')" >> $LOGFILE 2>&1
+Rscript -e "BiocManager::install('pheatmap')" >> $LOGFILE 2>&1
+Rscript -e "if (!requireNamespace('ggplot2', quietly = TRUE)) install.packages('ggplot2')" >> $LOGFILE 2>&1
 
-echo "Environment setup and installation completed."
+log "Environment setup and installation completed."
