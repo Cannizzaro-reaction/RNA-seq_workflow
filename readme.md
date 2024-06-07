@@ -51,12 +51,34 @@
 
 ### 计算环境
 
-1. `rna_seq` 环境：主要用于数据下载和上游分析。添加上海交通大学 anaconda 镜像后配置该环境。conda 创建 `rna_seq` 虚拟环境，随后通过 conda 安装 `FastQC`、`BWA`、`Samtools`、`SRA Toolkit`、`Trim Galore`、`Subread`。
-2. `r_env` 环境：用于运行 R 脚本，分析基因表达差异，并绘图。依次安装基础 R 包，以及 `DESeq2`、`EnhancedVolcano`、`pheatmat`、`ggplot2` 等差异分析需要的包。
+* `rna_seq` 环境：主要用于数据下载和上游分析。添加上海交通大学 anaconda 镜像后配置该环境。
+
+具体安装的软件及版本如下：
+
+| package     | version |
+| ----------- | ------- |
+| SRA-Tools   | 2.8.0   |
+| Subread     | 2.0.6   |
+| Trim-Galore | 0.6.10  |
+| BWA         | 0.7.18  |
+| Samtools    | 1.3.1   |
+| FastQC      | 0.12.1  |
+
+* `r_env` 环境：用于运行 R 脚本，分析基因表达差异，并绘图。安装基础 R 包，以及 `DESeq2`、`EnhancedVolcano`、`pheatmat`、`ggplot2` 等差异分析需要的包，具体版本如下：
+
+| package         | version |
+| --------------- | ------- |
+| BioManager      | 1.30.23 |
+| DESeq2          | 1.42.1  |
+| EnhancedVolcano | 1.20.0  |
+| pheatmat        | 1.0.12  |
+| ggplot2         | 3.5.1   |
+
+
 
 **操作过程：**
 
-运行脚本 `environment_setup.sh` 安装所需要的环境 `rna_seq` 和 `r_env`。若部分 R 包安装不成功，可以尝试在命令行中进入 R 交互环境手动运行以下命令安装：
+可以通过运行脚本 `environment_setup.sh` 安装所需要的环境 `rna_seq` 和 `r_env`。若部分 R 包安装不成功，可以尝试在命令行中进入 R 交互环境手动运行以下命令安装：
 
 * 设置 CRAN 镜像：
 
