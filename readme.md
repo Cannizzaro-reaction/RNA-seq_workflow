@@ -157,29 +157,103 @@
   * 利用 FeatureCounts，对排序后的 `.bam` 文件进行基因表达记数，得到表达量矩阵
     
   * 去除中间文件
-    
+  
 * RNA 序列下游分析
   * 将表达量矩阵进行处理，去除不需要的列，作为后续R脚本的输入
-  
   * 运行R脚本，加载所需要的包
-  
   * 输入原始数据，设置样本信息，构建 DataFrame
-  
   * 使用表达量数据和样本信息，构建 DESeq 数据集
-  
   * 数据预处理，包括去除总数过低的基因，利用 DESeq 函数将数据归一化，并进行差异分析
-  
   * 得到差异分析结果，进行排序
-  
   * 设置参数，绘制火山图，展示显著差异基因的分布
-  
   * 筛选显著差异表达的基因，绘制热图，展示这些基因在不同样本间的表达模式
-  
   * 绘制 MA 图，可视化展示基因表达变化和显著性
-  
   * 输出差异分析结果的数据和图
-  
-    
+
+**操作过程：**
+
+环境配置完成后，在脚本所在目录下运行脚本 `workflow.sh` 即可完成上述分析流程：
+
+```shell
+chmod +x workflow.sh
+./workflow.sh
+```
+
+完成分析后，得到工作目录如下：
+
+```shell
+├── database # raw data and the index for reference genome
+│   ├── raw_counts.txt
+│   ├── reference.fna
+│   ├── reference.fna.amb
+│   ├── reference.fna.ann
+│   ├── reference.fna.bwt
+│   ├── reference.fna.pac
+│   ├── reference.fna.sa
+│   ├── reference.gff
+│   └── reference.gtf
+├── deseq_analysis.R
+├── environment_setup.sh
+├── result
+│   ├── bam # bam files created after comparison
+│   │   ├── SRR15174659_alignment.bam
+│   │   ├── SRR15174659_sorted.bam
+│   │   ├── SRR15174659_sorted.bam.bai
+│   │   ├── SRR15174661_alignment.bam
+│   │   ├── SRR15174661_sorted.bam
+│   │   ├── SRR15174661_sorted.bam.bai
+│   │   ├── SRR15174663_alignment.bam
+│   │   ├── SRR15174663_sorted.bam
+│   │   ├── SRR15174663_sorted.bam.bai
+│   │   ├── SRR15174670_alignment.bam
+│   │   ├── SRR15174670_sorted.bam
+│   │   ├── SRR15174670_sorted.bam.bai
+│   │   ├── SRR15174671_alignment.bam
+│   │   ├── SRR15174671_sorted.bam
+│   │   ├── SRR15174671_sorted.bam.bai
+│   │   ├── SRR15174672_alignment.bam
+│   │   ├── SRR15174672_sorted.bam
+│   │   └── SRR15174672_sorted.bam.bai
+│   ├── expression # results for gene differential expression analysis
+│   │   ├── Rplots.pdf
+│   │   ├── counts.txt
+│   │   ├── counts.txt.summary
+│   │   ├── differential_expression_results.csv
+│   │   └── raw_counts.txt
+│   ├── qc # quality reports
+│   │   ├── SRR15174659_fastqc.html
+│   │   ├── SRR15174659_fastqc.zip
+│   │   ├── SRR15174661_fastqc.html
+│   │   ├── SRR15174661_fastqc.zip
+│   │   ├── SRR15174663_fastqc.html
+│   │   ├── SRR15174663_fastqc.zip
+│   │   ├── SRR15174670_fastqc.html
+│   │   ├── SRR15174670_fastqc.zip
+│   │   ├── SRR15174671_fastqc.html
+│   │   ├── SRR15174671_fastqc.zip
+│   │   ├── SRR15174672_fastqc.html
+│   │   └── SRR15174672_fastqc.zip
+│   └── trim # fastq files after trimming and trim reports
+│       ├── SRR15174659.fastq_trimming_report.txt
+│       ├── SRR15174659_trimmed.fq
+│       ├── SRR15174661.fastq_trimming_report.txt
+│       ├── SRR15174661_trimmed.fq
+│       ├── SRR15174663.fastq_trimming_report.txt
+│       ├── SRR15174663_trimmed.fq
+│       ├── SRR15174670.fastq_trimming_report.txt
+│       ├── SRR15174670_trimmed.fq
+│       ├── SRR15174671.fastq_trimming_report.txt
+│       ├── SRR15174671_trimmed.fq
+│       ├── SRR15174672.fastq_trimming_report.txt
+│       └── SRR15174672_trimmed.fq
+└── workflow.sh
+
+6 directories, 59 files
+```
+
+
+
+
 
 ## 分析结果
 
