@@ -1,4 +1,22 @@
-# 转录组学分析流程
+<div align="center">
+    <h1>
+    RNA-Seq and Gene Differential Expression Analysis
+    </h1>
+    <p>
+    Project of BIO2503, 2024 Spring, SJTU
+    <br />
+    <a href="https://github.com/xywawawa"><strong>xywawawa</strong></a>
+    &nbsp;
+    <a href="https://github.com/Cannizzaro-reaction"><strong>Cannizzaro-reaction</strong></a>
+    &nbsp;
+    </p>
+    <p>
+    <a href="https://github.com/Cannizzaro-reaction/RNA-seq_workflow"><img alt="Github Repository" src="https://img.shields.io/badge/Github-Repository-blue?logo=github&logoColor=blue"></a>
+    <a href="https://github.com/Cannizzaro-reaction/RNA-seq_workflow?tab=MIT-1-ov-file"><img alt="mit" src="https://img.shields.io/badge/License-MIT-red.svg"></a>
+    </p>
+    <img src="plots/eyys_h11v_120506.jpg" alt="gene" width="200"/>
+</div>
+
 
 
 
